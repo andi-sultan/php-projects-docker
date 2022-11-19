@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+# php8
+  php-apache-8-1:
+    # lokasi Dockerfile
+    build: .
+    links:
+      - mariadb-8-1:db
+    restart: always
+    ports:
+      - 8081:80
+    volumes:
+      - /home/user/:/var/www/html/
+      - ./config-files/apache2.conf:/etc/apache2/apache2.conf
+      - ./config-files/php.ini:/usr/local/etc/php/php.ini
+  
+  composer-8-1:
+    image: composer:latest
+    depends_on:
+      - php-apache-8-1
+    volumes:
+      - /home/user/:/var/www/html/
+
+  mariadb-8-1:
+    image: mariadb:latest
+    restart: always
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3381:3306
+
+  phpmyadmin-8-1:
+    image: phpmyadmin/phpmyadmin:latest
+    links:
+      - mariadb-8-1:db
+    restart: always
+    ports:
+      - "8181:80"
+    volumes:
+      - ./config-files/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php
+
+volumes:
+  mariadb-data:
